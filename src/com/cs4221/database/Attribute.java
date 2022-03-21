@@ -1,9 +1,9 @@
 package com.cs4221.database;
 
 public class Attribute {
-    protected String name;
-    protected String type;
-    protected boolean isKey;
+    private final String name;
+    private final String type;
+    private boolean isKey;
 
     public Attribute(String name, String type) {
         this.name = name;
@@ -17,14 +17,6 @@ public class Attribute {
 
     public String getType() {
         return type;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public boolean getKey() {

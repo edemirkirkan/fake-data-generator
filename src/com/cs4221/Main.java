@@ -9,34 +9,33 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
-        run();
-    }
-
-    private static void run() {
-        boolean isQuit = false;
-        Scanner scanner = new Scanner(System.in);
         Database db = new Database();
         Parser parser = new Parser();
+        Scanner scanner = new Scanner(System.in);
+        boolean isQuit = false;
         while (!isQuit) {
+            isQuit = run(db, parser, scanner);
+        }
+    }
+
+    private static boolean run(Database db, Parser parser, Scanner scanner) {
             prompt();
             String input = scanner.nextLine();
             try {
                 Command command = parser.parse(input);
                 command.execute(db);
-                isQuit = command.isQuit();
+                return command.isQuit();
             } catch (Exception ex) {
-                error("Wrong Format\nAll available commands can be seen using 'help' command");
+                error();
+                return false;
             }
-        }
-        db.printEntities();
-        scanner.close();
     }
 
-    private static void error(String msg) {
-        System.out.println(msg);
+    private static void error() {
+        System.out.println("Wrong Format\nAll available commands can be seen using 'help' command");
     }
 
     private static void prompt() {
-        System.out.println("Enter a command, all available commands can be seen using 'help' command");
+        System.out.println("\nEnter a command, all available commands can be seen using 'help' command");
     }
 }

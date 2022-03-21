@@ -7,28 +7,24 @@ import com.cs4221.database.Table;
 
 import java.util.ArrayList;
 
-public class CreateTableCommand implements Command {
-    protected ArrayList<Attribute> attributes;
-    protected String tableName;
-    protected boolean isQuit;
+public class CreateEntityCommand implements Command {
+    private final ArrayList<Attribute> attributes;
+    private final String tableName;
 
-    public CreateTableCommand(String tableName, ArrayList<Attribute> attributes) {
+    public CreateEntityCommand(String tableName, ArrayList<Attribute> attributes) {
         this.attributes = attributes;
         this.tableName = tableName;
-        this.isQuit = false;
     }
 
     @Override
     public void execute(Database db) {
-        Table entity = new Entity(attributes, null);
+        Table entity = new Entity(attributes, null, tableName);
         db.addTable(entity);
     }
 
-
-
     @Override
     public boolean isQuit() {
-        return this.isQuit;
+        return false;
     }
 
 

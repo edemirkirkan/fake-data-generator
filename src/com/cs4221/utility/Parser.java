@@ -15,8 +15,29 @@ public class Parser {
         else if (keywords[0].equalsIgnoreCase("HELP")) {
             return new HelpCommand();
         }
-        else if (keywords[0].equalsIgnoreCase("CREATE") &&  keywords[1].equalsIgnoreCase("ENTITY")) {
-            return parseCreateTable(keywords);
+        else if (keywords[0].equalsIgnoreCase("SHOW") &&
+                keywords[1].equalsIgnoreCase("ENTITIES")) {
+            return new ShowEntitiesCommand();
+        }
+        else if (keywords[0].equalsIgnoreCase("SHOW") &&
+                keywords[1].equalsIgnoreCase("RELATIONS")) {
+            return new ShowRelationsCommand();
+        }
+        else if (keywords[0].equalsIgnoreCase("SHOW") &&
+                keywords[1].equalsIgnoreCase("DIAGRAM")) {
+            return new ShowDiagramCommand();
+        }
+        else if (keywords[0].equalsIgnoreCase("REMOVE") &&
+                keywords[1].equalsIgnoreCase("ENTITY")) {
+            return parseRemoveEntity(keywords);
+        }
+        else if (keywords[0].equalsIgnoreCase("REMOVE") &&
+                keywords[1].equalsIgnoreCase("RELATION")) {
+            return parseRemoveRelation(keywords);
+        }
+        else if (keywords[0].equalsIgnoreCase("CREATE") &&
+                keywords[1].equalsIgnoreCase("ENTITY")) {
+            return parseCreateEntity(keywords);
         }
         /*
         else if (commandType.equalsIgnoreCase("CREATE") && entityType.equalsIgnoreCase("RELATION")){
@@ -27,10 +48,25 @@ public class Parser {
         return new ErrorCommand("Wrong Format\nAll available commands can be seen using 'help' command");
     }
 
-    private Command parseCreateTable(String[] keywords) {
+    private Command parseRemoveEntity(String[] keywords) {
+        if (keywords.length != 3) {
+            return new ErrorCommand("Syntax Error\nEntity name cannot be left blank\n");
+        }
+        return new RemoveEntityCommand(keywords[2]);
+    }
+
+    private Command parseRemoveRelation(String[] keywords) {
+        if (keywords.length != 3) {
+            return new ErrorCommand("Syntax Error\nRelation name cannot be left blank\n");
+        }
+        return new RemoveRelationCommand(keywords[2]);
+    }
+
+    private Command parseCreateEntity(String[] keywords) {
         if (!keywords[3].equalsIgnoreCase("WITH")) {
-            return new ErrorCommand("Syntax Error\nCREATE ENTITY command must be used with 'WITH' keyword." +
-                    "\nAll available commands can be seen using 'help' command");
+            return new ErrorCommand("Syntax Error\n" +
+                    "CREATE ENTITY command must be used with 'WITH' keyword." +
+                    "\n All available commands can be seen using 'help' command");
         }
         String tableName = keywords[2];
         int index = 4;
@@ -41,8 +77,8 @@ public class Parser {
             index += 2;
         }
         if (!keywords[index].equalsIgnoreCase("PRIMARY") || !keywords[index + 1].equalsIgnoreCase("KEY")) {
-            return new ErrorCommand("Syntax Error\nCREATE ENTITY command must be used with " +
-                    "'PRIMARY KEY' keyword." +
+            return new ErrorCommand("Syntax Error\n" +
+                    "CREATE ENTITY command must be used with 'PRIMARY KEY' keyword." +
                     "\n All available commands can be seen using 'help' command");
         }
 
@@ -64,7 +100,7 @@ public class Parser {
             }
             index++;
         }
-        return new CreateTableCommand(tableName, attributes);
+        return new CreateEntityCommand(tableName, attributes);
     }
     private String removeLastChar(String s) {
         return (s == null || s.length() == 0)

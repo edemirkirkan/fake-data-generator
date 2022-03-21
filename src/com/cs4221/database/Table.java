@@ -1,22 +1,29 @@
 package com.cs4221.database;
 
-import com.cs4221.database.Attribute;
-
 import java.util.ArrayList;
 
 public class Table {
-    ArrayList<String> attributeNames;
-    ArrayList<ArrayList<String>> data;
-    ArrayList<Boolean> isKey;
+    private ArrayList<String> attributeNames;
+    private final ArrayList<String> attributeTypes;
+    private ArrayList<ArrayList<String>> data;
+    private ArrayList<Boolean> isKey;
+    private final String tableName;
 
-    public Table(ArrayList<Attribute> attributes, ArrayList<ArrayList<String>> data) {
+    public Table(ArrayList<Attribute> attributes, ArrayList<ArrayList<String>> data, String tableName) {
         attributeNames = new ArrayList<>();
+        attributeTypes = new ArrayList<>();
         isKey = new ArrayList<>();
         for (Attribute att : attributes) {
             attributeNames.add(att.getName());
+            attributeTypes.add(att.getType());
             isKey.add(att.getKey());
         }
         this.data = data;
+        this.tableName = tableName;
+    }
+
+    public String getTableName() {
+        return tableName;
     }
 
     public String toString() {
@@ -35,49 +42,64 @@ public class Table {
         ArrayList<Integer> maxLength;
         maxLength =  new ArrayList<>();
 
-        for (String header : attributeNames) {
-            maxLength.add(header.length());
+        for (int i = 0, n = attributeNames.size(); i < n; i++) {
+            maxLength.add(attributeNames.get(i).length() + attributeTypes.get(i).length() + 3);
         }
-        calcMaxLengthAll(data, maxLength);
+        String title = tableName + " (" + getClass().getSimpleName().toUpperCase() + ")";
+        calcMaxLengthAll(maxLength);
+        if (attributeNames.size() == 1) {
+            maxLength.set(0, Math.max(title.length(), maxLength.get(0)));
+        }
+
         StringBuilder sb = new StringBuilder();
         StringBuilder sbRowSep = new StringBuilder();
-        StringBuilder padder = new StringBuilder();
+        StringBuilder padding = new StringBuilder();
         String rowSeperator;
 
 
         int TABLE_PADDING = 4;
-        for(int i = 0; i < TABLE_PADDING; i++){
-            padder.append(" ");
-        }
+        padding.append(" ".repeat(TABLE_PADDING));
 
-        //Create the rowSeperator
+        //Create the row seperator
         for (Integer integer : maxLength) {
-            sbRowSep.append("|");
+            sbRowSep.append("+");
             for (int j = 0; j < integer + (TABLE_PADDING * 2); j++) {
                 char SEPERATOR_CHAR = '-';
                 sbRowSep.append(SEPERATOR_CHAR);
             }
         }
-        sbRowSep.append("|");
+        sbRowSep.append("+");
         rowSeperator = sbRowSep.toString();
 
+        sb.append(rowSeperator);
+        sb.append("\n");
+
+        sb.append("|");
+
+        int blankSpace = rowSeperator.length() - 2 - title.length();
+        int space = blankSpace / 2;
+        int remainingSpace = blankSpace - space;
+        sb.append(" ".repeat(Math.max(0, remainingSpace)));
+        sb.append(title);
+        sb.append(" ".repeat(Math.max(0, space)));
+        sb.append("|");
+        sb.append("\n");
         sb.append(rowSeperator);
         sb.append("\n");
         // Attribute Names
         sb.append("|");
         for(int i = 0; i < attributeNames.size(); i++){
-            sb.append(padder);
+            String header = attributeNames.get(i) + " (" + attributeTypes.get(i) + ")";
+            sb.append(padding);
             if (isKey.get(i)) {
-                sb.append(String.join("\u0332", attributeNames.get(i).split("",-1)));
+                sb.append(String.join("\u0332", header.split("",-1)));
             }
             else {
-                sb.append(attributeNames.get(i));
+                sb.append(header);
             }
             //Fill up with empty spaces
-            for(int k = 0; k < (maxLength.get(i)-attributeNames.get(i).length()); k++){
-                sb.append(" ");
-            }
-            sb.append(padder);
+            sb.append(" ".repeat(Math.max(0, (maxLength.get(i) - header.length()))));
+            sb.append(padding);
             sb.append("|");
         }
         sb.append("\n");
@@ -89,13 +111,11 @@ public class Table {
             //New row
             sb.append("|");
             for (int j = 0; j < tempRow.size(); j++) {
-                sb.append(padder);
+                sb.append(padding);
                 sb.append(tempRow.get(j));
                 //Fill up with empty spaces
-                for (int k = 0; k < (maxLength.get(j) - tempRow.get(j).length()); k++) {
-                    sb.append(" ");
-                }
-                sb.append(padder);
+                sb.append(" ".repeat(Math.max(0, (maxLength.get(j) - tempRow.get(j).length()))));
+                sb.append(padding);
                 sb.append("|");
             }
             sb.append("\n");
@@ -105,12 +125,12 @@ public class Table {
         return sb.toString();
     }
 
-    private void calcMaxLengthAll(ArrayList<ArrayList<String>> table, ArrayList<Integer> maxLength){
-        for (ArrayList<String> temp : table) {
-            for (int j = 0; j < temp.size(); j++) {
+    private void calcMaxLengthAll(ArrayList<Integer> maxLength){
+        for (ArrayList<String> column : data) {
+            for (int j = 0; j < column.size(); j++) {
                 //If the table content was longer then current maxLength - update it
-                if (temp.get(j).length() > maxLength.get(j)) {
-                    maxLength.set(j, temp.get(j).length());
+                if (column.get(j).length() > maxLength.get(j)) {
+                    maxLength.set(j, column.get(j).length());
                 }
             }
         }
