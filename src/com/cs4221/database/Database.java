@@ -13,17 +13,41 @@ public class Database {
         if (!isUnique(table.getTableName())) {
             System.out.println("There is already a entity/relation in the system named '" + table.getTableName() +
                     "'\nConsider changing the name and try again" +
-                    "\nAll diagram can be seen using SHOW DIAGRAM command.");
+                    "\nAll tables/entities can be seen using SHOW DIAGRAM command.");
             return;
         }
-        tables.add(table);
-        String type = table instanceof Entity ? "Entity" : "Relation";
-        System.out.println(type + " is successfully created");
+        if (table instanceof Entity) {
+            tables.add(table);
+            System.out.println("Entity is successfully created");
+        } else {
+            Relation relation = (Relation) table;
+            if (!validRelation(relation.getLeftTableName(), relation.getRightTableName())) {
+                System.out.println("Relation cannot be created as related entities do not exist in the system" +
+                        "\nAll entities can be seen using SHOW ENTITIES command.");
+                return;
+            }
+            tables.add(table);
+            System.out.println("Relation is successfully created");
+        }
+    }
+
+    private boolean validRelation(String leftTableName, String rightTableName) {
+        boolean leftFound = false;
+        boolean rightFound = false;
+        for (Table t : tables) {
+            if (t instanceof Entity && t.getTableName().equalsIgnoreCase(leftTableName)) {
+                leftFound = true;
+            }
+            if (t instanceof Entity && t.getTableName().equalsIgnoreCase(rightTableName)) {
+                rightFound = true;
+            }
+        }
+        return leftFound && rightFound;
     }
 
     public void removeEntity(String entityName) {
         for (Table t : tables) {
-            if (t instanceof  Entity && t.getTableName().equalsIgnoreCase(entityName)) {
+            if (t instanceof Entity && t.getTableName().equalsIgnoreCase(entityName)) {
                 tables.remove(t);
                 System.out.println("Entity is successfully removed");
                 return;
