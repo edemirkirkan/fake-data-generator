@@ -28,7 +28,11 @@ public class Relation extends Table {
         } else if (leftTableMaxConst.equalsIgnoreCase("*") &&
                 rightTableMaxConst.equalsIgnoreCase("*")) {
             relationshipType = "Many-Many";
-        } else {
+        }else if (leftTableMaxConst.equalsIgnoreCase("1") &&
+                rightTableMaxConst.equalsIgnoreCase("1")) {
+            relationshipType = "One-One";
+        }
+        else {
             relationshipType = null;
         }
     }

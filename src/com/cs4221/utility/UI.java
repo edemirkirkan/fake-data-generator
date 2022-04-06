@@ -3,7 +3,7 @@ package com.cs4221.utility;
 import java.util.ArrayList;
 
 public class UI {
-    public String generateTable(ArrayList<String> attributeNames, ArrayList<ArrayList<String>> data,
+    public String displayEntity(ArrayList<String> attributeNames, ArrayList<ArrayList<String>> data,
                                 ArrayList<String> attributeTypes, ArrayList<Boolean> isKey, String tableName, String tableType) {
         if (attributeNames == null) {
             attributeNames = new ArrayList<>();
@@ -101,6 +101,16 @@ public class UI {
         return sb.toString();
     }
 
+    public String getTypeText() {
+        final String SEPARATOR = "------------------------------------------------------------------" +
+                "------------";
+
+        return SEPARATOR + "\nAnimal_Common_Name, App_Bundle_ID, Bitcoin_Address, Boolean, Car_Model, City\n" +
+                "Color, Country, Currency, Datetime, Email_Address, First_Name, Full_Name\nGender, IBAN," +
+                "IP_Address_V4, IP_Address_V6, Last_Name, MAC_Address, Number\nPassword, Phone, Row_Number, " +
+                "URL, Username, ISBN, SSN, Race, Time_Zone\n" + SEPARATOR;
+    }
+
     public String getHelpText() {
         final String SEPARATOR = "------------------------------------------------------------------" +
                 "----------------------------------------------------------------------------";
@@ -109,25 +119,34 @@ public class UI {
                 "COMMAND\nFormat\nCREATE ENTITY {entity_name} " + "WITH {attribute_name} " +
                 "{attribute_type}" + ",{attribute2_name} {attribute2_type}, ... " +
                 "PRIMARY KEY {attribute_name}, " + "...\nUsage\nCREATE ENTITY student " +
-                "WITH s_id UUID, s_name VARCHAR(20), s_age INT PRIMARY KEY s_id\n" + SEPARATOR + "\nCREATE " +
+                "WITH s_id Row_Number, s_name First_Name, s_lname Last_Name PRIMARY KEY s_id\nOR\n" +
+                "CREATE ENTITY teacher WITH t_id Row_Number, t_name First_Name, t_lname " +
+                "Last_Name PRIMARY KEY t_id\n" + SEPARATOR + "\nCREATE " +
                 "RELATION COMMAND\nFormat\nCREATE RELATION {relation_name} FOR {left_table_name} WITH " +
                 "PARTICIPATION MIN {left_table_min} MAX\n{left_table_max} AND {right_table_name} WITH " +
                 "PARTICIPATION MIN {right_table_min} MAX {right_table_max}\n('optional') ATTRIBUTES {attribute_name}" +
                 " {attribute_type}, {attribute2_name} {attribute2_type}, ...\n" + "Usage\nCREATE RELATION student-teacher FOR student WITH PARTICIPATION MIN 0 MAX * AND teacher WITH PARTICIPATION MIN 1 " +
                 "MAX *\nOR\nCREATE RELATION student-teacher FOR student WITH PARTICIPATION MIN 0 MAX * " +
-                "AND teacher WITH PARTICIPATION MIN 1 MAX * ATTRIBUTES date DATE\n" + SEPARATOR +
+                "AND teacher WITH PARTICIPATION MIN 1 MAX 1 ATTRIBUTES date Datetime\n" + SEPARATOR +
                 "\nREMOVE ENTITY COMMAND\nFormat\nREMOVE ENTITY {entity_name}\nUsage\nREMOVE ENTITY " +
                 "student\n" + SEPARATOR + "\nREMOVE RELATION COMMAND\nFormat\nREMOVE RELATION " +
                 "{relation_name}" + "\nUsage\nREMOVE RELATION " + "student-teacher\n" + SEPARATOR +
                 "\nSHOW ENTITIES COMMAND\nFormat/Usage\nSHOW ENTITIES\n" + SEPARATOR + "\nSHOW " +
                 "RELATIONS COMMAND\nFormat/Usage\nSHOW RELATIONS\n" + SEPARATOR + "\nSHOW DIAGRAM " +
-                "COMMAND\nFormat/Usage\nSHOW DIAGRAM\n" + SEPARATOR + "\nEXIT COMMAND\nFormat/Usage" +
-                "\nEXIT\n" + SEPARATOR;
+                "COMMAND\nFormat/Usage\nSHOW DIAGRAM\n" + SEPARATOR + "\nCREATE DISTRIBUTION COMMAND\n" +
+                "Format/Usage:\nCREATE UNIFORM_INTEGER DISTRIBUTION WITH PARAM1 20 PARAM2 50 FOR " +
+                "ATTRIBUTE s_id IN TABLE student\nOR\nCREATE GEOMETRIC DISTRIBUTION WITH PARAM1 1 PARAM2 " +
+                "NaN FOR ATTRIBUTE s_id IN TABLE student\n" + SEPARATOR + "\nCREATE JOINT DISTRIBUTION COMMAND\n" +
+                "Format/Usage:\nCREATE UNIFORM_INTEGER JOINT DISTRIBUTION WITH PARAM1 20 PARAM2 50 FOR " +
+                "ATTRIBUTE s_id IN TABLE student\nOR\nCREATE GEOMETRIC JOINT DISTRIBUTION WITH PARAM1 1 PARAM2 NaN " +
+                "FOR ATTRIBUTE s_id IN TABLE student\n" + SEPARATOR + "\nSHOW TYPES\nFormat/Usage\nTYPE\n" +
+                SEPARATOR + "\nGENERATE DATA COMMAND\nFormat/Usage\n" +
+                "GENERATE DATA {row_number}\n" + SEPARATOR + "\nEXIT COMMAND\nFormat/Usage\nEXIT\n" + SEPARATOR;
     }
 
-    public String generateRelation(ArrayList<String> attributeNames, ArrayList<String> attributeTypes, String tableName,
-                                   String leftTableName, String rightTableName, String leftTableParticipation,
-                                   String rightTableParticipation, String relationshipType) {
+    public String displayRelation(ArrayList<String> attributeNames, ArrayList<String> attributeTypes, String tableName,
+                                  String leftTableName, String rightTableName, String leftTableParticipation,
+                                  String rightTableParticipation, String relationshipType) {
         StringBuilder sb = new StringBuilder();
         StringBuilder sep = new StringBuilder();
         final int PADDING = 4;

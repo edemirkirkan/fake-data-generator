@@ -2,40 +2,145 @@ package com.cs4221.utility;
 
 
 import com.cs4221.commands.*;
+
 import com.cs4221.database.Attribute;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Parser {
     public Command parse(String input) {
         String[] keywords = input.split(" ");
         if (keywords[0].equalsIgnoreCase("EXIT")) {
             return new ExitCommand();
-        } else if (keywords[0].equalsIgnoreCase("HELP")) {
+        }
+        if (keywords[0].equalsIgnoreCase("HELP")) {
             return new HelpCommand();
-        } else if (keywords[0].equalsIgnoreCase("SHOW") &&
+        }
+        if (keywords[0].equalsIgnoreCase("TYPE")) {
+            return new ShowTypesCommand();
+        }
+        if (keywords[0].equalsIgnoreCase("SHOW") &&
                 keywords[1].equalsIgnoreCase("ENTITIES")) {
             return new ShowEntitiesCommand();
-        } else if (keywords[0].equalsIgnoreCase("SHOW") &&
+        }
+        if (keywords[0].equalsIgnoreCase("SHOW") &&
                 keywords[1].equalsIgnoreCase("RELATIONS")) {
             return new ShowRelationsCommand();
-        } else if (keywords[0].equalsIgnoreCase("SHOW") &&
+        }
+        if (keywords[0].equalsIgnoreCase("SHOW") &&
                 keywords[1].equalsIgnoreCase("DIAGRAM")) {
             return new ShowDiagramCommand();
-        } else if (keywords[0].equalsIgnoreCase("REMOVE") &&
+        }
+        if (keywords[0].equalsIgnoreCase("REMOVE") &&
                 keywords[1].equalsIgnoreCase("ENTITY")) {
             return parseRemoveEntity(keywords);
-        } else if (keywords[0].equalsIgnoreCase("REMOVE") &&
+        }
+        if (keywords[0].equalsIgnoreCase("REMOVE") &&
                 keywords[1].equalsIgnoreCase("RELATION")) {
             return parseRemoveRelation(keywords);
-        } else if (keywords[0].equalsIgnoreCase("CREATE") &&
+        }
+        if (keywords[0].equalsIgnoreCase("CREATE") &&
                 keywords[1].equalsIgnoreCase("ENTITY")) {
             return parseCreateEntity(keywords);
-        } else if (keywords[0].equalsIgnoreCase("CREATE") &&
+        }
+        if (keywords[0].equalsIgnoreCase("CREATE") &&
                 keywords[1].equalsIgnoreCase("RELATION")) {
             return parseCreateRelation(keywords);
         }
+        if (keywords[0].equalsIgnoreCase("CREATE") &&
+                keywords[2].equalsIgnoreCase("DISTRIBUTION")) {
+            return parseDistribution(keywords);
+        }
+        if (keywords[0].equalsIgnoreCase("CREATE") &&
+                keywords[2].equalsIgnoreCase("JOINT") &&
+                keywords[2].equalsIgnoreCase("DISTRIBUTION")) {
+            return parseJointDistribution(keywords);
+        }
+        if (keywords[0].equalsIgnoreCase("GENERATE") &&
+                keywords[1].equalsIgnoreCase("DATA")) {
+            return parseGenerateData(keywords);
+        }
         return new ErrorCommand("Wrong Format\nAll available commands can be seen using 'help' command");
+    }
+
+    private Command parseDistribution(String[] keywords) {
+        if (!keywords[3].equalsIgnoreCase("WITH")) {
+            return new ErrorCommand("Syntax Error\n" +
+                    "CREATE DISTRIBUTION command must be used with 'WITH' keyword." +
+                    "\n All available commands can be seen using 'help' command");
+        }
+        if (!keywords[4].equalsIgnoreCase("PARAM1") ||
+                !keywords[6].equalsIgnoreCase("PARAM2")) {
+            return new ErrorCommand("Syntax Error\n" +
+                    "CREATE DISTRIBUTION command must be used with 'PARAM' keyword." +
+                    "\n All available commands can be seen using 'help' command");
+        }
+
+        if (!keywords[8].equalsIgnoreCase("FOR") ||
+                !keywords[9].equalsIgnoreCase("ATTRIBUTE")) {
+            return new ErrorCommand("Syntax Error\n" +
+                    "CREATE DISTRIBUTION command must be used with 'FOR ATTRIBUTE' keyword." +
+                    "\n All available commands can be seen using 'help' command");
+        }
+        if (!keywords[11].equalsIgnoreCase("IN") ||
+                !keywords[12].equalsIgnoreCase("TABLE")) {
+            return new ErrorCommand("Syntax Error\n" +
+                    "CREATE DISTRIBUTION command must be used with 'IN TABLE' keyword." +
+                    "\n All available commands can be seen using 'help' command");
+        }
+
+        if (keywords[7].equalsIgnoreCase("NaN")) {
+            keywords[7] = null;
+        }
+        return new SingleColumnDistributionCommand(keywords[13], keywords[10],
+                keywords[1], removeLastChar(keywords[5]), removeLastChar(keywords[7]));
+    }
+
+    private Command parseJointDistribution(String[] keywords) {
+        if (!keywords[3].equalsIgnoreCase("WITH")) {
+            return new ErrorCommand("Syntax Error\n" +
+                    "CREATE JOINT DISTRIBUTION command must be used with 'WITH' keyword." +
+                    "\n All available commands can be seen using 'help' command");
+        }
+        if (!keywords[4].equalsIgnoreCase("PARAM1") ||
+                !keywords[6].equalsIgnoreCase("PARAM2")) {
+            return new ErrorCommand("Syntax Error\n" +
+                    "CREATE JOINT DISTRIBUTION command must be used with 'PARAM' keyword." +
+                    "\n All available commands can be seen using 'help' command");
+        }
+
+        if (!keywords[8].equalsIgnoreCase("FOR") ||
+                !keywords[9].equalsIgnoreCase("ATTRIBUTE")) {
+            return new ErrorCommand("Syntax Error\n" +
+                    "CREATE JOINT DISTRIBUTION command must be used with 'FOR ATTRIBUTE' keyword." +
+                    "\n All available commands can be seen using 'help' command");
+        }
+        if (!keywords[11].equalsIgnoreCase("IN") ||
+                !keywords[12].equalsIgnoreCase("TABLE")) {
+            return new ErrorCommand("Syntax Error\n" +
+                    "CREATE JOINT DISTRIBUTION command must be used with 'IN TABLE' keyword." +
+                    "\n All available commands can be seen using 'help' command");
+        }
+
+        if (!keywords[14].equalsIgnoreCase("FOR") ||
+                !keywords[15].equalsIgnoreCase("ATTRIBUTE")) {
+            return new ErrorCommand("Syntax Error\n" +
+                    "CREATE JOINT DISTRIBUTION command must be used with 'FOR ATTRIBUTE' keyword." +
+                    "\n All available commands can be seen using 'help' command");
+        }
+        if (!keywords[17].equalsIgnoreCase("IN") ||
+                !keywords[18].equalsIgnoreCase("TABLE")) {
+            return new ErrorCommand("Syntax Error\n" +
+                    "CREATE JOINT DISTRIBUTION command must be used with 'IN TABLE' keyword." +
+                    "\n All available commands can be seen using 'help' command");
+        }
+
+        if (keywords[7].equalsIgnoreCase("NaN")) {
+            keywords[7] = null;
+        }
+        return new MultipleColumnDistributionCommand(keywords[13], keywords[10], keywords[19], keywords[16],
+                keywords[1], removeLastChar(keywords[5]), removeLastChar(keywords[7]));
     }
 
     private Command parseRemoveEntity(String[] keywords) {
@@ -61,8 +166,18 @@ public class Parser {
         String tableName = keywords[2];
         int index = 4;
         ArrayList<Attribute> attributes = new ArrayList<>();
+        String[] validTypes = {"Animal_Common_Name", "App_Bundle_ID", "Bitcoin_Address",
+                "Boolean", "Car_Model", "City", "Color", "Country", "Currency", "Datetime",
+                "Email_Address", "First_Name", "Full_Name", "Gender", "IBAN", "IP_Address_V4",
+                "IP_Address_V6", "Last_Name", "MAC_Address", "Number", "Password", "Phone",
+                "Row_Number", "URL", "Username"};
         while (index <= keywords.length - 1 && !keywords[index].equalsIgnoreCase("PRIMARY")) {
-            Attribute attribute = new Attribute(keywords[index], removeLastChar(keywords[index + 1]));
+            String type = removeLastChar(keywords[index + 1]);
+            if (!Arrays.asList(validTypes).contains(type)) {
+                return new ErrorCommand("Invalid type '" + type + "'\nAll available type can be seen using " +
+                        "'type' command.");
+            }
+            Attribute attribute = new Attribute(keywords[index], type);
             attributes.add(attribute);
             index += 2;
         }
@@ -156,5 +271,12 @@ public class Parser {
         return (s == null || s.length() == 0)
                 ? null
                 : s.charAt(s.length() - 1) == ',' ? s.substring(0, s.length() - 1) : s;
+    }
+
+    private Command parseGenerateData(String[] keywords) {
+        if (keywords.length != 3) {
+            return new ErrorCommand("Syntax Error\nRow Count Required\n");
+        }
+        return new GenerateDataCommand(Integer.parseInt(keywords[2]));
     }
 }

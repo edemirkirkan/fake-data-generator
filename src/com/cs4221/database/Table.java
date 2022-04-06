@@ -3,6 +3,7 @@ package com.cs4221.database;
 import com.cs4221.utility.UI;
 
 import java.util.ArrayList;
+import java.util.RandomAccess;
 
 public class Table {
     private final String tableName;
@@ -19,6 +20,10 @@ public class Table {
         return tableName;
     }
 
+    public ArrayList<Attribute> getTableAttributes() {
+        return attributes;
+    }
+
     public String toString() {
         UI ui = new UI();
         ArrayList<String> attributeNames = new ArrayList<>();
@@ -33,10 +38,10 @@ public class Table {
         }
         String tableType = getClass().getSimpleName().toUpperCase();
         if (this instanceof Entity) {
-            return ui.generateTable(attributeNames, data, attributeTypes, isKey, tableName, tableType);
+            return ui.displayEntity(attributeNames, data, attributeTypes, isKey, tableName, tableType);
         } else {
             Relation relation = (Relation) this;
-            return ui.generateRelation(attributeNames, attributeTypes, tableName, relation.getLeftTableName(), relation.getRightTableName(), relation.getLeftTableParticipation(), relation.getRightTableParticipation(), relation.getRelationshipType());
+            return ui.displayRelation(attributeNames, attributeTypes, tableName, relation.getLeftTableName(), relation.getRightTableName(), relation.getLeftTableParticipation(), relation.getRightTableParticipation(), relation.getRelationshipType());
         }
 
     }
