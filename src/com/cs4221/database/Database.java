@@ -312,9 +312,11 @@ public class Database {
 
     public void addSingleColumnDistribution(SingleColumnDistribution dist) {
         singleColumnDistributions.add(dist);
+        System.out.println("Distribution constraint is successfully added.");
     }
 
     public void addMultipleColumnDistribution(MultipleColumnDistribution dist) {
         multipleColumnDistributions.add(dist);
+        System.out.println("Joint distribution constraint is successfully added.");
     }
 }

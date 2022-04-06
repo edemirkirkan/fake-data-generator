@@ -111,6 +111,26 @@ public class UI {
                 "URL, Username, ISBN, SSN, Race, Time_Zone\n" + SEPARATOR;
     }
 
+    public String getParameterText() {
+        final String SEPARATOR = "------------------------------------------------------------------" +
+                "------------";
+
+        return SEPARATOR + "\nINTEGER PARAMETERS\n" +
+                "Uniform_Integer distribution -> param1: lower bound, param2: upper bound\n" +
+                "Geometric distribution -> param1: probability of success, param2: NaN\n" +
+                "Binomial distribution -> param1: number of trials, param2: probability of success\n" +
+                "Poisson distribution -> param1: probability of success, param2: NaN\n" +
+                "REAL PARAMETERS\n" +
+                "Uniform_Real distribution -> param1: lower bound, param2: upper bound\n" +
+                "Normal distribution -> param1: mean, param2: standard deviation\n" +
+                "Exponential distribution -> param1: mean, param2: NaN\n" +
+                "Beta distribution -> param1: alpha, param2: beta\n" +
+                "Cauchy distribution -> param1: median, param2: scale\n" +
+                "Logistic distribution -> param1: mu, param2: s\n" +
+                "T distribution -> param1: degree of freedom, param2: NaN\n" +
+                "ChiSquare distribution -> param1: degree of freedom, param2: NaN\n" + SEPARATOR;
+    }
+
     public String getHelpText() {
         final String SEPARATOR = "------------------------------------------------------------------" +
                 "----------------------------------------------------------------------------";
@@ -120,8 +140,8 @@ public class UI {
                 "{attribute_type}" + ",{attribute2_name} {attribute2_type}, ... " +
                 "PRIMARY KEY {attribute_name}, " + "...\nUsage\nCREATE ENTITY student " +
                 "WITH s_id Row_Number, s_name First_Name, s_lname Last_Name PRIMARY KEY s_id\nOR\n" +
-                "CREATE ENTITY teacher WITH t_id Row_Number, t_name First_Name, t_lname " +
-                "Last_Name PRIMARY KEY t_id\n" + SEPARATOR + "\nCREATE " +
+                "CREATE ENTITY teacher WITH t_id Row_Number, t_name First_Name, t_salary " +
+                "Number PRIMARY KEY t_id\n" + SEPARATOR + "\nCREATE " +
                 "RELATION COMMAND\nFormat\nCREATE RELATION {relation_name} FOR {left_table_name} WITH " +
                 "PARTICIPATION MIN {left_table_min} MAX\n{left_table_max} AND {right_table_name} WITH " +
                 "PARTICIPATION MIN {right_table_min} MAX {right_table_max}\n('optional') ATTRIBUTES {attribute_name}" +
@@ -134,14 +154,22 @@ public class UI {
                 "\nSHOW ENTITIES COMMAND\nFormat/Usage\nSHOW ENTITIES\n" + SEPARATOR + "\nSHOW " +
                 "RELATIONS COMMAND\nFormat/Usage\nSHOW RELATIONS\n" + SEPARATOR + "\nSHOW DIAGRAM " +
                 "COMMAND\nFormat/Usage\nSHOW DIAGRAM\n" + SEPARATOR + "\nCREATE DISTRIBUTION COMMAND\n" +
-                "Format/Usage:\nCREATE UNIFORM_INTEGER DISTRIBUTION WITH PARAM1 20 PARAM2 50 FOR " +
-                "ATTRIBUTE s_id IN TABLE student\nOR\nCREATE GEOMETRIC DISTRIBUTION WITH PARAM1 1 PARAM2 " +
-                "NaN FOR ATTRIBUTE s_id IN TABLE student\n" + SEPARATOR + "\nCREATE JOINT DISTRIBUTION COMMAND\n" +
-                "Format/Usage:\nCREATE UNIFORM_INTEGER JOINT DISTRIBUTION WITH PARAM1 20 PARAM2 50 FOR " +
-                "ATTRIBUTE s_id IN TABLE student\nOR\nCREATE GEOMETRIC JOINT DISTRIBUTION WITH PARAM1 1 PARAM2 NaN " +
-                "FOR ATTRIBUTE s_id IN TABLE student\n" + SEPARATOR + "\nSHOW TYPES\nFormat/Usage\nTYPE\n" +
-                SEPARATOR + "\nGENERATE DATA COMMAND\nFormat/Usage\n" +
-                "GENERATE DATA {row_number}\n" + SEPARATOR + "\nEXIT COMMAND\nFormat/Usage\nEXIT\n" + SEPARATOR;
+                "Format:\nCREATE {distribution_type} DISTRIBUTION WITH PARAM1 {first_parameter} PARAM2 " +
+                "{second_parameter}\nFOR ATTRIBUTE {attribute_name} IN TABLE {table_name}\nNote that you can find " +
+                "the parameters for corresponding distribution using 'parameter' command.\nIf the distribution " +
+                "only need one parameter, you can write NaN for the second parameter\nUsage:\nCREATE " +
+                "UNIFORM_INTEGER DISTRIBUTION WITH PARAM1 20 PARAM2 50 FOR " +
+                "ATTRIBUTE salary IN TABLE teacher\nOR\nCREATE EXPONENTIAL DISTRIBUTION WITH PARAM1 2000 PARAM2 " +
+                "NaN FOR ATTRIBUTE salary IN TABLE teacher\n" + SEPARATOR + "\nCREATE JOINT DISTRIBUTION COMMAND\n" +
+                "Format/Usage:\nCREATE BETA JOINT DISTRIBUTION WITH PARAM1 20 PARAM2 50 FOR " +
+                "ATTRIBUTE salary IN TABLE student FOR ATTRIBUTE salary IN TABLE teacher\n" + SEPARATOR + "\nSHOW TYPES\nFormat/Usage\nTYPE\n" +
+                SEPARATOR + "\nSHOW PARAMETERS COMMAND\nFormat/Usage\n" + "PARAMETER\n" +
+                SEPARATOR + "\nGENERATE DATA COMMAND\nFormat/Usage\nGENERATE DATA {row_number}\n" + SEPARATOR +
+                "\nEXIT COMMAND\nFormat/Usage\nEXIT\n" + SEPARATOR + "\nSAMPLE INPUT\nCREATE ENTITY student WITH s_id Row_Number, s_name First_Name, s_lname Last_Name PRIMARY KEY s_id\n" +
+                "CREATE ENTITY teacher WITH t_id Row_Number, t_name First_Name, t_salary Number PRIMARY KEY t_id\n" +
+                "CREATE RELATION student-teacher FOR student WITH PARTICIPATION MIN 0 MAX * AND teacher WITH PARTICIPATION MIN 1 MAX * ATTRIBUTES date Datetime\n" +
+                "CREATE EXPONENTIAL DISTRIBUTION WITH PARAM1 10000 PARAM2 NaN FOR ATTRIBUTE t_salary IN TABLE teacher\n" +
+                "GENERATE DATA 1000\n\nPlease copy the sample input from one line below, that is, with the newline character.\n" + SEPARATOR;
     }
 
     public String displayRelation(ArrayList<String> attributeNames, ArrayList<String> attributeTypes, String tableName,

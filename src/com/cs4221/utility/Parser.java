@@ -20,6 +20,9 @@ public class Parser {
         if (keywords[0].equalsIgnoreCase("TYPE")) {
             return new ShowTypesCommand();
         }
+        if (keywords[0].equalsIgnoreCase("PARAMETER")) {
+            return new ParameterCommand();
+        }
         if (keywords[0].equalsIgnoreCase("SHOW") &&
                 keywords[1].equalsIgnoreCase("ENTITIES")) {
             return new ShowEntitiesCommand();
@@ -54,7 +57,7 @@ public class Parser {
         }
         if (keywords[0].equalsIgnoreCase("CREATE") &&
                 keywords[2].equalsIgnoreCase("JOINT") &&
-                keywords[2].equalsIgnoreCase("DISTRIBUTION")) {
+                keywords[3].equalsIgnoreCase("DISTRIBUTION")) {
             return parseJointDistribution(keywords);
         }
         if (keywords[0].equalsIgnoreCase("GENERATE") &&

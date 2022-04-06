@@ -20,7 +20,6 @@ import java.util.*;
 
 public class Repository {
     private static JSONArray finalJSONArray = new JSONArray();
-    private static JSONArray finalSQLArray = new JSONArray();
     private static int rowCount;
     private static String schemaType;
     private static String tblName = null;
@@ -30,7 +29,6 @@ public class Repository {
         Repository.rowCount = rowCount;
         Repository.schemaType = schemaType;
         Repository.tblName = tableName;
-        
         this.generateData(tables);
         JSONArray distJsonArray = db.applySingleColumnDistributions(finalJSONArray, rowCount);
         if (distJsonArray.isEmpty()) {
@@ -104,7 +102,7 @@ public class Repository {
                         }
                     }
                     if (relationAttributes.length() > 0) {
-                        relationAttributeData = fetchData(relationAttributes, "json");
+                        relationAttributeData = fetchData(relationAttributes, null);
                     }
                     List<String> leftPartialList = leftTablePrimaryIds.subList(0, (int) Math.floor(rowCount / 2) != 0 ? (int) Math.floor(rowCount / 2) : rowCount);
                     List<String> rightPartialList = rightTablePrimaryIds.subList(0, (int) Math.floor(rowCount / 2) != 0 ? (int) Math.floor(rowCount / 2) : rowCount);
@@ -122,7 +120,7 @@ public class Repository {
                                     jsonobj.put(rightPrimaryIdColumnName, rightPartialIds.get(j));
                                     // only if relation has attributes (this will happen for many-many)
                                     for (int m = 0; m < relationAttributes.length(); m++) {
-                                        ArrayList<String> relationAttributeRandomData = new ArrayList<String>();
+                                        ArrayList<String> relationAttributeRandomData = new ArrayList<>();
                                         JSONObject jsonObject1 = relationAttributes.getJSONObject(m);
                                         String relationAttrName = jsonObject1.getString("name");
                                         for (int m1 = 0; m1 < relationAttributeData.length(); m1++) {
@@ -218,7 +216,7 @@ public class Repository {
                         fields.put(jsonobj);
 
                     }
-                    schemaParsing(fetchData(fields, "json"), t.getTableName());
+                    schemaParsing(fetchData(fields, t.getTableName()), t.getTableName());
                     index++;
                 }
 
@@ -239,7 +237,7 @@ public class Repository {
 
                 }
             }
-            schemaParsing(fetchData(fields, "json"), tblName);
+            schemaParsing(fetchData(fields, tblName), tblName);
         } else if (Objects.equals(schemaType, "One-Many") || Objects.equals(schemaType, "Many-One")) {
             if (tables.size() == 2) {
                 //Total partial relationship
@@ -261,7 +259,7 @@ public class Repository {
                     fields.put(jsonobj);
 
                 }
-                schemaParsing(fetchData(fields, "json"), firstTable.getTableName());
+                schemaParsing(fetchData(fields, firstTable.getTableName()), firstTable.getTableName());
 
 
                 ArrayList<String> firstTablePrimaryIds = new ArrayList<>();
@@ -316,7 +314,7 @@ public class Repository {
                     }
                 }
 
-                JSONArray attributesValues = fetchData(fields, "json");
+                JSONArray attributesValues = fetchData(fields, null);
 
 
                 JSONArray finalValues = new JSONArray();
@@ -357,7 +355,7 @@ public class Repository {
 
                             }
                         }
-                        JSONArray relationAttributeValues = fetchData(fields, "json");
+                        JSONArray relationAttributeValues = fetchData(fields, null);
 
 
                         //determine which of two foreign key is primary and select the values of primary randomly and uniquely
@@ -414,7 +412,7 @@ public class Repository {
                         }
 
 
-                        schemaParsing(fetchData(fields, "json"), entityTable.getTableName());
+                        schemaParsing(fetchData(fields, entityTable.getTableName()), entityTable.getTableName());
 
 
                         //getting primary tables ids
@@ -454,26 +452,48 @@ public class Repository {
                     fields.put(jsonobj);
 
                 }
-                schemaParsing(fetchData(fields, "json"), t.getTableName());
+                schemaParsing(fetchData(fields, t.getTableName()), t.getTableName());
             }
 
         } // for independent entity without any relation
     }
 
-    public JSONArray fetchData(JSONArray fields, String outType) throws IOException {
+    public void generateSQLFile(JSONArray fields, String tableName) throws IOException { // separate code for generate sql file
         String fieldsStr = URLEncoder.encode(fields.toString(), StandardCharsets.UTF_8);
         String rowCountStr = URLEncoder.encode(rowCount + "", StandardCharsets.UTF_8);
-        URL url = new URL("https://api.mockaroo.com/api/generate." + outType + "?key=dc055d30&" +
+        URL url = new URL("https://api.mockaroo.com/api/generate.sql?key=dc055d30&" +
+                "array=true&count=" + rowCountStr + "&fields=" + fieldsStr);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setDoOutput(true);
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Content-Type", "application/sql");
+        OutputStream os = conn.getOutputStream();
+        os.write(fields.toString().getBytes());
+        os.flush();
+        FileWriter out = new FileWriter("output/"
+                + tableName + ".sql", false);
+
+        String s = IOUtils.toString(conn.getInputStream(), String.valueOf(StandardCharsets.UTF_8));
+        out.write(s);
+        out.close();
+    }
+
+    public JSONArray fetchData(JSONArray fields, String tableName) throws IOException {
+        String fieldsStr = URLEncoder.encode(fields.toString(), StandardCharsets.UTF_8);
+        String rowCountStr = URLEncoder.encode(rowCount + "", StandardCharsets.UTF_8);
+        URL url = new URL("https://api.mockaroo.com/api/generate.json?key=dc055d30&" +
                 "array=true&count=" + rowCountStr + "&fields=" + fieldsStr);
 
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setDoOutput(true);
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Content-Type", "application/json");
-
         OutputStream os = conn.getOutputStream();
         os.write(fields.toString().getBytes());
         os.flush();
+        if (tableName != null) { // not for relation id generation logic
+            generateSQLFile(fields, tableName);
+        }
         return new JSONArray(IOUtils.toString(conn.getInputStream(), String.valueOf(StandardCharsets.UTF_8)));
     }
 

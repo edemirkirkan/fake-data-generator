@@ -1,6 +1,7 @@
 package com.cs4221.distributions;
 
 import org.apache.commons.math3.distribution.*;
+import org.apache.commons.math3.util.Precision;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -59,9 +60,8 @@ public class RealDistribution {
     private static ArrayList<Double> generateSampleValues(AbstractRealDistribution distribution, int sampleSize) {
         ArrayList<Double> values = new ArrayList<>();
         for (int i = 0; i < sampleSize; i++) {
-            values.add(distribution.sample());
+            values.add(Precision.round(distribution.sample(), 2));
         }
         return values;
     }
-
 }
