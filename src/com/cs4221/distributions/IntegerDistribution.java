@@ -46,6 +46,7 @@ public class IntegerDistribution {
         for (int i = 0; i < sampleSize; i++) {
             values.add(distribution.sample());
         }
+
         return values;
     }
 }

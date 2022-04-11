@@ -7,7 +7,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class RealDistribution {
+public class  RealDistribution {
 
     public static void setRealDistValues(JSONArray data, String tableName, String attributeName, ArrayList<Double> values) {
         for (int i = 0; i < data.length(); i++) {
@@ -64,4 +64,5 @@ public class RealDistribution {
         }
         return values;
     }
+
 }

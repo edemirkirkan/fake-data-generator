@@ -7,6 +7,7 @@ import com.cs4221.database.Attribute;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 public class Parser {
     public Command parse(String input) {
@@ -20,9 +21,6 @@ public class Parser {
         if (keywords[0].equalsIgnoreCase("TYPE")) {
             return new ShowTypesCommand();
         }
-        if (keywords[0].equalsIgnoreCase("PARAMETER")) {
-            return new ParameterCommand();
-        }
         if (keywords[0].equalsIgnoreCase("SHOW") &&
                 keywords[1].equalsIgnoreCase("ENTITIES")) {
             return new ShowEntitiesCommand();
@@ -30,6 +28,10 @@ public class Parser {
         if (keywords[0].equalsIgnoreCase("SHOW") &&
                 keywords[1].equalsIgnoreCase("RELATIONS")) {
             return new ShowRelationsCommand();
+        }
+        if (keywords[0].equalsIgnoreCase("SHOW") &&
+                keywords[1].equalsIgnoreCase("DISTRIBUTIONS")) {
+            return new ParameterCommand();
         }
         if (keywords[0].equalsIgnoreCase("SHOW") &&
                 keywords[1].equalsIgnoreCase("DIAGRAM")) {
@@ -56,9 +58,16 @@ public class Parser {
             return parseDistribution(keywords);
         }
         if (keywords[0].equalsIgnoreCase("CREATE") &&
-                keywords[2].equalsIgnoreCase("JOINT") &&
+                keywords[1].equalsIgnoreCase("MULTIPLE") &&
+                keywords[2].equalsIgnoreCase("COLUMN") &&
+                keywords[4].equalsIgnoreCase("DISTRIBUTION")) {
+            return parseMultipleColumnDistribution(keywords);
+        }
+        if (keywords[0].equalsIgnoreCase("CREATE") &&
+                keywords[1].equalsIgnoreCase("JOINT") &&
+                keywords[2].equalsIgnoreCase("PROBABILITY") &&
                 keywords[3].equalsIgnoreCase("DISTRIBUTION")) {
-            return parseJointDistribution(keywords);
+            return parseJointProbabilityDistribution(keywords);
         }
         if (keywords[0].equalsIgnoreCase("GENERATE") &&
                 keywords[1].equalsIgnoreCase("DATA")) {
@@ -100,50 +109,92 @@ public class Parser {
                 keywords[1], removeLastChar(keywords[5]), removeLastChar(keywords[7]));
     }
 
-    private Command parseJointDistribution(String[] keywords) {
-        if (!keywords[3].equalsIgnoreCase("WITH")) {
+    private Command parseMultipleColumnDistribution(String[] keywords) {
+        if (!keywords[5].equalsIgnoreCase("WITH")) {
             return new ErrorCommand("Syntax Error\n" +
-                    "CREATE JOINT DISTRIBUTION command must be used with 'WITH' keyword." +
+                    "CREATE MULTIPLE COLUMN DISTRIBUTION command must be used with 'WITH' keyword." +
                     "\n All available commands can be seen using 'help' command");
         }
-        if (!keywords[4].equalsIgnoreCase("PARAM1") ||
-                !keywords[6].equalsIgnoreCase("PARAM2")) {
+        HashMap<Object, ArrayList<Number>> mapToDistributionParams = new HashMap<>();
+        int index;
+        for (index = 6; keywords[index + 4].equalsIgnoreCase("WHERE"); index += 8) {
+            if (!keywords[index].equalsIgnoreCase("PARAM1") ||
+                    !keywords[index + 2].equalsIgnoreCase("PARAM2")) {
+                return new ErrorCommand("Syntax Error\n" +
+                        "CREATE MULTIPLE COLUMN DISTRIBUTION command must be used with 'PARAM' keyword." +
+                        "\n All available commands can be seen using 'help' command");
+            }
+
+            if (keywords[index + 3].equalsIgnoreCase("NaN")) {
+                keywords[index + 3] = null;
+            }
+            ArrayList<Number> params = new ArrayList<>();
+            params.add(Double.parseDouble(removeLastChar(keywords[index + 1])));
+            params.add(Double.parseDouble(removeLastChar(keywords[index + 3])));
+            mapToDistributionParams.put(keywords[index + 7], params);
+        }
+
+        if (!keywords[index].equalsIgnoreCase("PARAM1") ||
+                !keywords[index + 2].equalsIgnoreCase("PARAM2")) {
+            System.out.println(index);
+            System.out.println(keywords[index]);
             return new ErrorCommand("Syntax Error\n" +
-                    "CREATE JOINT DISTRIBUTION command must be used with 'PARAM' keyword." +
+                    "CREATE MULTIPLE COLUMN DISTRIBUTION command must be used with 'PARAM' keyword." +
+                    " Distribution for other values should also be added." +
                     "\n All available commands can be seen using 'help' command");
         }
 
-        if (!keywords[8].equalsIgnoreCase("FOR") ||
-                !keywords[9].equalsIgnoreCase("ATTRIBUTE")) {
+        if (keywords[index + 3].equalsIgnoreCase("NaN")) {
+            keywords[index + 3] = null;
+        }
+        ArrayList<Number> params = new ArrayList<>();
+        params.add(Double.parseDouble(removeLastChar(keywords[index + 1])));
+        params.add(Double.parseDouble(removeLastChar(keywords[index + 3])));
+        mapToDistributionParams.put(null, params);
+
+        index += 4;
+        if (!keywords[index].equalsIgnoreCase("FOR") ||
+                !keywords[index + 1].equalsIgnoreCase("ATTRIBUTE")) {
             return new ErrorCommand("Syntax Error\n" +
-                    "CREATE JOINT DISTRIBUTION command must be used with 'FOR ATTRIBUTE' keyword." +
+                    "CREATE MULTIPLE COLUMN DISTRIBUTION command must be used with 'FOR ATTRIBUTE' keyword." +
                     "\n All available commands can be seen using 'help' command");
         }
-        if (!keywords[11].equalsIgnoreCase("IN") ||
-                !keywords[12].equalsIgnoreCase("TABLE")) {
+        if (!keywords[index + 3].equalsIgnoreCase("IN") ||
+                !keywords[index + 4].equalsIgnoreCase("TABLE")) {
             return new ErrorCommand("Syntax Error\n" +
-                    "CREATE JOINT DISTRIBUTION command must be used with 'IN TABLE' keyword." +
+                    "CREATE MULTIPLE COLUMN DISTRIBUTION command must be used with 'IN TABLE' keyword." +
                     "\n All available commands can be seen using 'help' command");
         }
 
-        if (!keywords[14].equalsIgnoreCase("FOR") ||
-                !keywords[15].equalsIgnoreCase("ATTRIBUTE")) {
+        return new MultipleColumnDistributionCommand(keywords[index + 5], keywords[12], keywords[index + 2],
+                keywords[3], mapToDistributionParams);
+    }
+
+    private Command parseJointProbabilityDistribution(String[] keywords) {
+        if (!keywords[4].equalsIgnoreCase("WITH")) {
             return new ErrorCommand("Syntax Error\n" +
-                    "CREATE JOINT DISTRIBUTION command must be used with 'FOR ATTRIBUTE' keyword." +
+                    "CREATE JOINT PROBABILITY DISTRIBUTION command must be used with 'WITH' keyword." +
                     "\n All available commands can be seen using 'help' command");
         }
-        if (!keywords[17].equalsIgnoreCase("IN") ||
-                !keywords[18].equalsIgnoreCase("TABLE")) {
+        if (!keywords[5].equalsIgnoreCase("MEAN") ||
+                !keywords[7].equalsIgnoreCase("SD")) {
             return new ErrorCommand("Syntax Error\n" +
-                    "CREATE JOINT DISTRIBUTION command must be used with 'IN TABLE' keyword." +
+                    "CREATE JOINT PROBABILITY DISTRIBUTION command must be used with 'MEAN' or 'SD' keyword." +
                     "\n All available commands can be seen using 'help' command");
         }
 
-        if (keywords[7].equalsIgnoreCase("NaN")) {
-            keywords[7] = null;
+        if (!keywords[9].equalsIgnoreCase("FOR")) {
+            return new ErrorCommand("Syntax Error\n" +
+                    "CREATE JOINT PROBABILITY DISTRIBUTION command must be used with 'FOR' keyword." +
+                    "\n All available commands can be seen using 'help' command");
         }
-        return new MultipleColumnDistributionCommand(keywords[13], keywords[10], keywords[19], keywords[16],
-                keywords[1], removeLastChar(keywords[5]), removeLastChar(keywords[7]));
+        if (!keywords[10].equalsIgnoreCase("TABLE")) {
+            return new ErrorCommand("Syntax Error\n" +
+                    "CREATE JOINT PROBABILITY DISTRIBUTION command must be used with 'TABLE' keyword." +
+                    "\n All available commands can be seen using 'help' command");
+        }
+
+        return new JointProbabilityDistributionCommand(keywords[6], keywords[8], keywords[11]);
     }
 
     private Command parseRemoveEntity(String[] keywords) {
@@ -173,7 +224,7 @@ public class Parser {
                 "Boolean", "Car_Model", "City", "Color", "Country", "Currency", "Datetime",
                 "Email_Address", "First_Name", "Full_Name", "Gender", "IBAN", "IP_Address_V4",
                 "IP_Address_V6", "Last_Name", "MAC_Address", "Number", "Password", "Phone",
-                "Row_Number", "URL", "Username"};
+                "Row_Number", "URL", "Username", "Construction_Role"};
         while (index <= keywords.length - 1 && !keywords[index].equalsIgnoreCase("PRIMARY")) {
             String type = removeLastChar(keywords[index + 1]);
             if (!Arrays.asList(validTypes).contains(type)) {

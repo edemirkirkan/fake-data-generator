@@ -1,11 +1,17 @@
 package com.cs4221.database;
 
 import com.cs4221.distributions.IntegerDistribution;
+import com.cs4221.distributions.MultipleColumnIntegerDistribution;
+import com.cs4221.distributions.MultipleColumnRealDistribution;
 import com.cs4221.distributions.RealDistribution;
+import org.apache.commons.math3.distribution.*;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Database {
     private final ArrayList<Table> tables;
@@ -195,8 +201,10 @@ public class Database {
 
     public JSONArray applySingleColumnDistributions(JSONArray data, int sampleSize) {
         for (SingleColumnDistribution dist : singleColumnDistributions) {
+
             String tableName = dist.getTableName();
             String attributeName = dist.getAttributeName();
+
             switch (dist.getType().toLowerCase()) {
             case "binomial":
                 int trials = Integer.parseInt(dist.getParam1());
@@ -260,51 +268,104 @@ public class Database {
         return data;
     }
 
-    public JSONArray applyMultipleColumnDistributions(JSONArray data, int sampleSize) {
+    private ArrayList<Object> getColumnDataFromDatabase(JSONArray data, String tableName, String attributeName) {
+        for (int i = 0, n = data.length(); i < n; i++) {
+            JSONObject table = data.getJSONObject(i);
+            if (table.getString("tableName").equalsIgnoreCase(tableName)) {
+                return getColumnDataFromTable(table.getJSONArray("data"), attributeName);
+            }
+        }
+
+        return null;
+    }
+
+    private ArrayList<Object> getColumnDataFromTable(JSONArray data, String attributeName) {
+        ArrayList<Object> columnData = new ArrayList<>();
+        for (int i = 0; i < data.length(); i++) {
+            JSONObject row = data.getJSONObject(i);
+            Object value = row.get(attributeName);
+            String string = String.valueOf(value);
+            columnData.add(string);
+        }
+
+        return columnData;
+    }
+
+    private void setMultipleColumnIntegerDistribution(JSONArray data, String tableName, String attributeName1,
+                                                      String attributeName2, Class<?> type,
+                                                      HashMap<Object, ArrayList<Number>> mapToDistributionParams) {
+        ArrayList<Object> independentColumnValues = getColumnDataFromDatabase(data, tableName, attributeName1);
+        ArrayList<Integer> values = MultipleColumnIntegerDistribution.getMultiColIntegerDistributionValues(
+                independentColumnValues, type, mapToDistributionParams);
+        IntegerDistribution.setIntegerDistValues(data, tableName, attributeName2, values);
+    }
+
+    private void setMultipleColumnRealDistribution(JSONArray data, String tableName, String attributeName1,
+                                                   String attributeName2, Class<?> type,
+                                                   HashMap<Object, ArrayList<Number>> mapToDistributionParams) {
+        ArrayList<Object> independentColumnValues = getColumnDataFromDatabase(data, tableName, attributeName1);
+        ArrayList<Double> values = MultipleColumnRealDistribution.getMultiColRealDistributionValues(
+                independentColumnValues, type, mapToDistributionParams);
+        RealDistribution.setRealDistValues(data, tableName, attributeName2, values);
+    }
+
+    public JSONArray applyMultipleColumnDistributions(JSONArray data) {
         for (MultipleColumnDistribution dist : multipleColumnDistributions) {
-            String tableName1 = dist.getTableName1();
+            String tableName = dist.getTableName();
             String attributeName1 = dist.getAttributeName1();
-            String tableName2 = dist.getTableName2();
             String attributeName2 = dist.getAttributeName2();
+            HashMap<Object, ArrayList<Number>> mapToDistributionParams = dist.getMapToDistributionParams();
             switch (dist.getType().toLowerCase()) {
-            case "binomial":
-
-                break;
-            case "geometric":
-
-                break;
-            case "uniform_integer":
-
-                break;
-            case "uniform_real":
-
-                break;
-            case "normal":
-
-                break;
-            case "poisson":
-
-                break;
-            case "exponential":
-
-                break;
-            case "beta":
-
-                break;
-            case "cauchy":
-
-                break;
-            case "logistic":
-
-                break;
-            case "t":
-
-                break;
-            case "chisquare":
-
-                break;
-            default:
-                return new JSONArray();
+                case "binomial":
+                    setMultipleColumnIntegerDistribution(data, tableName, attributeName1, attributeName2,
+                            BinomialDistribution.class, mapToDistributionParams);
+                    break;
+                case "geometric":
+                    setMultipleColumnIntegerDistribution(data, tableName, attributeName1, attributeName2,
+                            GeometricDistribution.class, mapToDistributionParams);
+                    break;
+                case "uniform_integer":
+                    setMultipleColumnIntegerDistribution(data, tableName, attributeName1, attributeName2,
+                            UniformIntegerDistribution.class, mapToDistributionParams);
+                    break;
+                case "poisson":
+                    setMultipleColumnIntegerDistribution(data, tableName, attributeName1, attributeName2,
+                            PoissonDistribution.class, mapToDistributionParams);
+                    break;
+                case "uniform_real":
+                    setMultipleColumnRealDistribution(data, tableName, attributeName1, attributeName2,
+                            UniformRealDistribution.class, mapToDistributionParams);
+                    break;
+                case "normal":
+                    setMultipleColumnRealDistribution(data, tableName, attributeName1, attributeName2,
+                            NormalDistribution.class, mapToDistributionParams);
+                    break;
+                case "exponential":
+                    setMultipleColumnRealDistribution(data, tableName, attributeName1, attributeName2,
+                            ExponentialDistribution.class, mapToDistributionParams);
+                    break;
+                case "beta":
+                    setMultipleColumnRealDistribution(data, tableName, attributeName1, attributeName2,
+                            BetaDistribution.class, mapToDistributionParams);
+                    break;
+                case "cauchy":
+                    setMultipleColumnRealDistribution(data, tableName, attributeName1, attributeName2,
+                            CauchyDistribution.class, mapToDistributionParams);
+                    break;
+                case "logistic":
+                    setMultipleColumnRealDistribution(data, tableName, attributeName1, attributeName2,
+                            LogisticDistribution.class, mapToDistributionParams);
+                    break;
+                case "t":
+                    setMultipleColumnRealDistribution(data, tableName, attributeName1, attributeName2,
+                            TDistribution.class, mapToDistributionParams);
+                    break;
+                case "chisquare":
+                    setMultipleColumnRealDistribution(data, tableName, attributeName1, attributeName2,
+                            ChiSquaredDistribution.class, mapToDistributionParams);
+                    break;
+                default:
+                    return new JSONArray();
             }
         }
         return data;
@@ -317,6 +378,12 @@ public class Database {
 
     public void addMultipleColumnDistribution(MultipleColumnDistribution dist) {
         multipleColumnDistributions.add(dist);
-        System.out.println("Joint distribution constraint is successfully added.");
+        System.out.println("Multiple Column distribution constraint is successfully added.");
+    }
+    public void addJointProbabilityDistribution(String mean, String sd, String tableName){
+        JointProbabilityDistribution.mean = Double.parseDouble(mean);
+        JointProbabilityDistribution.sd = Double.parseDouble(sd);
+        JointProbabilityDistribution.tableName = tableName;
+        System.out.println("Joint probability distribution is successfully added.");
     }
 }

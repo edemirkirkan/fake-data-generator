@@ -2,6 +2,7 @@ package com.cs4221.mockaroo;
 
 import com.cs4221.database.Attribute;
 import com.cs4221.database.Database;
+import com.cs4221.database.JointProbabilityDistribution;
 import com.cs4221.database.Table;
 import org.apache.commons.io.IOUtils;
 import org.json.CDL;
@@ -20,6 +21,7 @@ import java.util.*;
 
 public class Repository {
     private static JSONArray finalJSONArray = new JSONArray();
+    private static JSONArray finalSQLArray = new JSONArray();
     private static int rowCount;
     private static String schemaType;
     private static String tblName = null;
@@ -29,8 +31,17 @@ public class Repository {
         Repository.rowCount = rowCount;
         Repository.schemaType = schemaType;
         Repository.tblName = tableName;
+        // finalJSONArray = this.generateData(tables); // TODO generate csv files at the end, return final json array
+        // finalJSONArray = db.applySingleColumnDistributions(finalJSONArray, rowCount);
+        // generate csv here, smt like generateCSV(finalJSONArray);
+        // generate at the end, instead of step by step
         this.generateData(tables);
         JSONArray distJsonArray = db.applySingleColumnDistributions(finalJSONArray, rowCount);
+        if (distJsonArray.isEmpty()) {
+            throw new IOException();
+        }
+
+        distJsonArray = db.applyMultipleColumnDistributions(finalJSONArray);
         if (distJsonArray.isEmpty()) {
             throw new IOException();
         }
@@ -95,7 +106,7 @@ public class Repository {
                             rightPrimaryIdColumnName = att.getName();
                             tableCount++;
                         } else { //generate data for relation attributes
-                            JSONObject jsonobj = new JSONObject();
+                            JSONObject jsonobj = orderJsonObject();
                             jsonobj.put("name", att.getName());
                             jsonobj.put("type", att.getType().replace("_", " "));
                             relationAttributes.put(jsonobj);
@@ -115,7 +126,7 @@ public class Repository {
                             for (int j = 0; j < rightPartialIds.size(); j++) {
 
                                 if (fields.length() < rowCount) {
-                                    JSONObject jsonobj = new JSONObject();
+                                    JSONObject jsonobj = orderJsonObject();
                                     jsonobj.put(leftPrimaryIdColumnName, leftPartialIds.get(i));
                                     jsonobj.put(rightPrimaryIdColumnName, rightPartialIds.get(j));
                                     // only if relation has attributes (this will happen for many-many)
@@ -144,7 +155,7 @@ public class Repository {
                              i++) { // as left table is partial, it is in main loop
                             for (int j = 0; j < rowCount;
                                  j++) { // as right table has full participation , it is in sub loop , so it covers all sub-loop and if teh total row count is still within limit then it goes to main loop
-                                JSONObject jsonobj = new JSONObject();
+                                JSONObject jsonobj = orderJsonObject();
                                 //jsonobj.put(leftPrimaryIdColumnName, leftTablePrimaryIds.get(i));
                                 jsonobj.put(leftPrimaryIdColumnName, leftPartialList.get(new Random().nextInt(leftPartialList.size())));
                                 jsonobj.put(rightPrimaryIdColumnName, rightTablePrimaryIds.get(j));
@@ -158,7 +169,7 @@ public class Repository {
                                  i++) { // as left table is partial, it is in main loop
                                 for (int j = 0; j < rowCount;
                                      j++) { // as right table has full participation , it is in sub loop , so it covers all sub-loop and if teh total row count is still within limit then it goes to main loop
-                                    JSONObject jsonobj = new JSONObject();
+                                    JSONObject jsonobj = orderJsonObject();
                                     //jsonobj.put(leftPrimaryIdColumnName, leftTablePrimaryIds.get(i));
                                     jsonobj.put(leftPrimaryIdColumnName, leftPartialListFRromMidToEnd.get(new Random().nextInt(leftPartialListFRromMidToEnd.size())));
                                     jsonobj.put(rightPrimaryIdColumnName, rightTablePrimaryIds.get(j));
@@ -169,7 +180,7 @@ public class Repository {
                     } else if ((Objects.equals(leftParticipation, "Total Participation")) && (Objects.equals(rightParticipation, "Partial Participation"))) { // same as above but vice versa
                         for (int i = 0; i < rightTablePrimaryIds.size() && fields.length() < rowCount; i++) {
                             for (int j = 0; j < rowCount; j++) {
-                                JSONObject jsonobj = new JSONObject();
+                                JSONObject jsonobj = orderJsonObject();
                                 jsonobj.put(leftPrimaryIdColumnName, leftTablePrimaryIds.get(j));
                                 //  jsonobj.put(rightPrimaryIdColumnName, rightTablePrimaryIds.get(i));
                                 jsonobj.put(rightPrimaryIdColumnName, rightPartialList.get(new Random().nextInt(rightPartialList.size())));
@@ -181,7 +192,7 @@ public class Repository {
                             for (int i = 0; i < rightTablePrimaryIds.size() && fields.length() < rowCount + rowCount;
                                  i++) {
                                 for (int j = 0; j < rowCount; j++) {
-                                    JSONObject jsonobj = new JSONObject();
+                                    JSONObject jsonobj = orderJsonObject();
                                     jsonobj.put(leftPrimaryIdColumnName, leftTablePrimaryIds.get(j));
                                     //  jsonobj.put(rightPrimaryIdColumnName, rightTablePrimaryIds.get(i));
                                     jsonobj.put(rightPrimaryIdColumnName, rightPartialListFromMidToEnd.get(new Random().nextInt(rightPartialListFromMidToEnd.size() - 1)));
@@ -193,7 +204,7 @@ public class Repository {
                         for (int i = 0; i < rightTablePrimaryIds.size();
                              i++) { //as both tables are fully involved, every table mapped with other
                             for (int j = 0; j < rightTablePrimaryIds.size(); j++) {
-                                JSONObject jsonobj = new JSONObject();
+                                JSONObject jsonobj = orderJsonObject();
                                 jsonobj.put(leftPrimaryIdColumnName, leftTablePrimaryIds.get(i));
                                 jsonobj.put(rightPrimaryIdColumnName, rightTablePrimaryIds.get(j));
                                 fields.put(jsonobj);
@@ -206,7 +217,7 @@ public class Repository {
                     fields = new JSONArray();
                     ArrayList<Attribute> attributes = t.getTableAttributes();
                     for (Attribute att : attributes) {
-                        JSONObject jsonobj = new JSONObject();
+                        JSONObject jsonobj = orderJsonObject();
                         jsonobj.put("name", att.getName());
                         if (att.getKey()) {
                             jsonobj.put("type", att.getType().replace("_", " "));
@@ -226,7 +237,7 @@ public class Repository {
             for (Table t : tables) {
                 ArrayList<Attribute> attributes = t.getTableAttributes();
                 for (Attribute att : attributes) {
-                    JSONObject jsonobj = new JSONObject();
+                    JSONObject jsonobj = orderJsonObject();
                     jsonobj.put("name", att.getName());
                     if (att.getKey()) {
                         jsonobj.put("type", att.getType().replace("_", " "));
@@ -238,7 +249,14 @@ public class Repository {
                 }
             }
             schemaParsing(fetchData(fields, tblName), tblName);
+
         } else if (Objects.equals(schemaType, "One-Many") || Objects.equals(schemaType, "Many-One")) {
+
+            double mean = JointProbabilityDistribution.mean;
+            double sd = JointProbabilityDistribution.sd;
+
+            boolean hasJPD = !Double.valueOf(mean).equals(0.0) && !Double.valueOf(sd).equals(0.0);
+
             if (tables.size() == 2) {
                 //Total partial relationship
                 //first table is primary table
@@ -276,13 +294,18 @@ public class Repository {
                     }
                 }
 
+                ArrayList<String> distForeignkeyList = new ArrayList<>();
 
                 //for two table probability distribution
-                double mean = 4;
-                double sd = 1;
 
-                ArrayList<String> distForeignkeyList = createForeignKeyDistList(rowCount, mean, sd, firstTablePrimaryIds);
 
+                if (hasJPD && Objects.equals(foreignKeyName, JointProbabilityDistribution.tableName)) {
+                    distForeignkeyList.addAll(createForeignKeyDistList(rowCount, mean, sd, firstTablePrimaryIds));
+                } else {
+                    for (int i = 0; i < firstTablePrimaryIds.size(); i++) {
+                        distForeignkeyList.add(firstTablePrimaryIds.get(new Random().nextInt(firstTablePrimaryIds.size())));
+                    }
+                }
                 JSONArray foreignkeyValues = new JSONArray();
                 for (int i = 0; i < rowCount; i++) {
                     JSONObject row = new JSONObject();
@@ -330,7 +353,6 @@ public class Repository {
             } //for partial partial relation (0,1) (0,n)
             else if (tables.size() == 3) {
 
-
                 ArrayList<List<String>> entityTablesPrimaryIds = new ArrayList<>();
                 ArrayList<String> foreignKeyName = new ArrayList<String>();
                 JSONArray finalValues = new JSONArray();
@@ -363,12 +385,19 @@ public class Repository {
                         int foreignKeyIndex = !Objects.equals(relationPriKey, foreignKeyName.get(0)) ? 0 : 1;
                         Collections.shuffle(entityTablesPrimaryIds.get(primaryKeyIndex));
 
+                        ArrayList<String> distForeignkeyList = new ArrayList<>();
+
+                        if (hasJPD && Objects.equals(relationPriKey, JointProbabilityDistribution.tableName)) {
+                            distForeignkeyList.addAll(createForeignKeyDistList(rowCount, mean, sd, (ArrayList<String>) entityTablesPrimaryIds.get(foreignKeyIndex)));
+                        } else {
+                            for (int j = 0; j < entityTablesPrimaryIds.get(foreignKeyIndex).size(); j++) {
+                                distForeignkeyList.add(entityTablesPrimaryIds.get(foreignKeyIndex).get(new Random().nextInt(entityTablesPrimaryIds.get(foreignKeyIndex).size())));
+                            }
+                        }
 
                         //apply probability distribution to foreign key occurrance
-                        double mean = 4;
-                        double sd = 1;
 
-                        ArrayList<String> distForeignkeyList = createForeignKeyDistList(rowCount, mean, sd, (ArrayList<String>) entityTablesPrimaryIds.get(foreignKeyIndex));
+                        // ArrayList<String> distForeignkeyList = createForeignKeyDistList(rowCount, mean, sd, (ArrayList<String>) entityTablesPrimaryIds.get(foreignKeyIndex));
 
                         //choose another foreign key value randomly
 

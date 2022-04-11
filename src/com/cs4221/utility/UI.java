@@ -162,14 +162,20 @@ public class UI {
                 "ATTRIBUTE salary IN TABLE teacher\nOR\nCREATE EXPONENTIAL DISTRIBUTION WITH PARAM1 2000 PARAM2 " +
                 "NaN FOR ATTRIBUTE salary IN TABLE teacher\n" + SEPARATOR + "\nCREATE JOINT DISTRIBUTION COMMAND\n" +
                 "Format/Usage:\nCREATE BETA JOINT DISTRIBUTION WITH PARAM1 20 PARAM2 50 FOR " +
-                "ATTRIBUTE salary IN TABLE student FOR ATTRIBUTE salary IN TABLE teacher\n" + SEPARATOR + "\nSHOW TYPES\nFormat/Usage\nTYPE\n" +
+                "ATTRIBUTE salary IN TABLE student FOR ATTRIBUTE salary IN TABLE teacher\n" + SEPARATOR +"\nCREATE JOINT PROBABILITY DISTRIBUTION COMMAND\n" +
+                "Format/Usage:\nCREATE JOINT PROBABILITY DISTRIBUTION WITH MEAN 4 SD 1 FOR TABLE teacher\n" + SEPARATOR+ "\nSHOW TYPES\nFormat/Usage\nTYPE\n" +
                 SEPARATOR + "\nSHOW PARAMETERS COMMAND\nFormat/Usage\n" + "PARAMETER\n" +
                 SEPARATOR + "\nGENERATE DATA COMMAND\nFormat/Usage\nGENERATE DATA {row_number}\n" + SEPARATOR +
                 "\nEXIT COMMAND\nFormat/Usage\nEXIT\n" + SEPARATOR + "\nSAMPLE INPUT\nCREATE ENTITY student WITH s_id Row_Number, s_name First_Name, s_lname Last_Name PRIMARY KEY s_id\n" +
                 "CREATE ENTITY teacher WITH t_id Row_Number, t_name First_Name, t_salary Number PRIMARY KEY t_id\n" +
                 "CREATE RELATION student-teacher FOR student WITH PARTICIPATION MIN 0 MAX * AND teacher WITH PARTICIPATION MIN 1 MAX * ATTRIBUTES date Datetime\n" +
                 "CREATE EXPONENTIAL DISTRIBUTION WITH PARAM1 10000 PARAM2 NaN FOR ATTRIBUTE t_salary IN TABLE teacher\n" +
-                "GENERATE DATA 1000\n\nPlease copy the sample input from one line below, that is, with the newline character.\n" + SEPARATOR;
+                "CREATE JOINT PROBABILITY DISTRIBUTION WITH MEAN 4 SD 1 FOR TABLE teacher\n" +
+                "CREATE ENTITY person WITH id Row_Number, level Number, name First_Name, salary Number PRIMARY KEY id\n" +
+                "CREATE UNIFORM_INTEGER DISTRIBUTION WITH PARAM1 1 PARAM2 4 FOR ATTRIBUTE level IN TABLE person\n" +
+                "CREATE MULTIPLE COLUMN NORMAL DISTRIBUTION WITH PARAM1 10000 PARAM2 2000 WHERE ATTRIBUTE level 1 PARAM1 5000 PARAM2 1000 WHERE ATTRIBUTE level 2 PARAM1 2000 PARAM2 500 WHERE ATTRIBUTE level 3 PARAM1 1000 PARAM2 200 FOR ATTRIBUTE salary IN TABLE person\n" +
+                "GENERATE DATA 100\n\n" +
+                "Please copy the sample input from one line below, that is, with the newline character.\n" + SEPARATOR;
     }
 
     public String displayRelation(ArrayList<String> attributeNames, ArrayList<String> attributeTypes, String tableName,

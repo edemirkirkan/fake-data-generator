@@ -3,13 +3,14 @@ package com.cs4221;
 import com.cs4221.commands.Command;
 import com.cs4221.database.Database;
 import com.cs4221.utility.Parser;
-import com.cs4221.utility.UI;
 
 import java.util.Scanner;
 
 public class Main {
 
     public static void main(String[] args) {
+
+
         Database db = new Database();
         Parser parser = new Parser();
         Scanner scanner = new Scanner(System.in);
@@ -27,6 +28,7 @@ public class Main {
             command.execute(db);
             return command.isQuit();
         } catch (Exception ex) {
+            System.out.println(ex);
             error();
             return false;
         }

@@ -20,7 +20,11 @@ public class MultipleColumnRealDistribution {
         // Generate dependent column value based on independent column value and the distribution.
         ArrayList<Double> output = new ArrayList<>();
         for (Object independentColumnValue: independentColumn) {
+            assert distributions != null;
             AbstractRealDistribution distribution = distributions.get(independentColumnValue);
+            if (distribution == null) {
+                distribution = distributions.get(null);
+            }
             Double value = distribution.sample();
             output.add(value);
         }

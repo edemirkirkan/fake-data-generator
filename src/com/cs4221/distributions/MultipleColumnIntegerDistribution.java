@@ -21,6 +21,9 @@ public class MultipleColumnIntegerDistribution {
         for (Object independentColumnValue : independentColumn) {
             assert distributions != null;
             AbstractIntegerDistribution distribution = distributions.get(independentColumnValue);
+            if (distribution == null) {
+                distribution = distributions.get(null);
+            }
             Integer value = distribution.sample();
             output.add(value);
         }

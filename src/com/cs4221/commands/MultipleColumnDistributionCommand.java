@@ -4,14 +4,16 @@ import com.cs4221.database.Database;
 import com.cs4221.database.MultipleColumnDistribution;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class MultipleColumnDistributionCommand implements Command {
     private final MultipleColumnDistribution dist;
 
-    public MultipleColumnDistributionCommand(String tableName1, String attributeName1, String tableName2,
-                                             String attributeName2, String type, String param1, String param2) {
-        dist = new MultipleColumnDistribution(tableName1, attributeName1, tableName2, attributeName2,
-                type, param1, param2);
+    public MultipleColumnDistributionCommand(String tableName, String attributeName1,
+                                             String attributeName2, String type,
+                                             HashMap<Object, ArrayList<Number>> mapToDistributionParams) {
+        dist = new MultipleColumnDistribution(tableName, attributeName1, attributeName2, type, mapToDistributionParams);
     }
 
     @Override
